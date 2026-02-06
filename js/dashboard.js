@@ -1,315 +1,359 @@
 class Dashboard {
     constructor() {
-        this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        this.staffOnLeave = JSON.parse(localStorage.getItem('staffOnLeave')) || [];
-        this.leaveHistory = JSON.parse(localStorage.getItem('leaveHistory')) || [];
-        this.jobdeskList = JSON.parse(localStorage.getItem('jobdeskList')) || ['Security', 'Cleaning', 'Reception', 'IT Support'];
-        this.initializeDashboard();
+        this.currentUser = null;
+        this.staffOnLeave = [];
+        this.leaveHistory = [];
+        this.currentLeaveType = null;
     }
-
-    initializeDashboard() {
-        if (!this.currentUser) {
-            window.location.href = 'index.html';
-            return;
-        }
-
-        this.updateUserInfo();
-        this.updateQuotaDisplay();
-        this.updateStaffOnLeave();
-        this.updateLeaveHistory();
-        this.initializeEventListeners();
+    
+    init() {
+        this.checkLogin();
+        this.loadData();
+        this.updateDisplay();
+        this.setupEventListeners();
         this.startClock();
+        this.checkAndResetQuotas();
     }
-
-    updateUserInfo() {
-        document.getElementById('userName').textContent = this.currentUser.username;
-        document.getElementById('userShift').textContent = this.getShiftName(this.currentUser.shift);
-        document.getElementById('loginTime').textContent = new Date(this.currentUser.loginTime).toLocaleTimeString('id-ID');
-    }
-
-    getShiftName(shiftKey) {
-        const shiftNames = {
-            'pagi': 'Shift Pagi (06:00 - 14:00)',
-            'siang': 'Shift Siang (14:00 - 22:00)',
-            'malam': 'Shift Malam (22:00 - 06:00)'
-        };
-        return shiftNames[shiftKey] || shiftKey;
-    }
-
-    updateQuotaDisplay() {
-        const user = this.currentUser;
-        
-        // Update short leave quota
-        document.getElementById('shortLeaveTotal').textContent = user.permissions.dailyShort;
-        document.getElementById('shortLeaveUsed').textContent = user.permissions.usedShort;
-        document.getElementById('shortLeaveRemaining').textContent = 
-            user.permissions.dailyShort - user.permissions.usedShort;
-        
-        // Update meal leave quota
-        document.getElementById('mealLeaveTotal').textContent = user.permissions.dailyMeal;
-        document.getElementById('mealLeaveUsed').textContent = user.permissions.usedMeal;
-        document.getElementById('mealLeaveRemaining').textContent = 
-            user.permissions.dailyMeal - user.permissions.usedMeal;
-
-        // Update progress bars
-        this.updateProgressBar('shortProgress', user.permissions.usedShort / user.permissions.dailyShort);
-        this.updateProgressBar('mealProgress', user.permissions.usedMeal / user.permissions.dailyMeal);
-    }
-
-    updateProgressBar(elementId, percentage) {
-        const progressBar = document.getElementById(elementId);
-        if (progressBar) {
-            const progress = Math.min(percentage * 100, 100);
-            progressBar.style.width = `${progress}%`;
-            progressBar.style.backgroundColor = progress > 80 ? '#f44336' : progress > 60 ? '#FF9800' : '#4CAF50';
-        }
-    }
-
-    updateStaffOnLeave() {
-        const container = document.getElementById('currentLeaveList');
-        if (!container) return;
-
-        if (this.staffOnLeave.length === 0) {
-            container.innerHTML = '<p class="no-data">Tidak ada staff yang sedang izin</p>';
+    
+    checkLogin() {
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            window.location.href = 'login.html';
             return;
         }
-
-        container.innerHTML = this.staffOnLeave.map(staff => `
+        
+        this.currentUser = JSON.parse(userData);
+        
+        // Check if session expired (8 hours)
+        const loginTime = new Date(this.currentUser.loginTime);
+        const now = new Date();
+        const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
+        
+        if (hoursDiff > 8) {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+    }
+    
+    loadData() {
+        // Load staff on leave from localStorage
+        this.staffOnLeave = JSON.parse(localStorage.getItem('staffOnLeave')) || [];
+        
+        // Load leave history from localStorage
+        this.leaveHistory = JSON.parse(localStorage.getItem('leaveHistory')) || [];
+        
+        // Filter current user's history
+        this.userHistory = this.leaveHistory.filter(
+            record => record.username === this.currentUser.username
+        );
+    }
+    
+    updateDisplay() {
+        // Update user info
+        document.getElementById('userName').textContent = this.currentUser.name;
+        document.getElementById('userDetails').innerHTML = `
+            Shift: ${this.getShiftName(this.currentUser.shift)} | 
+            Departemen: ${this.currentUser.department || '-'} | 
+            Jobdesk: ${this.currentUser.jobdesk || '-'}
+        `;
+        
+        const loginTime = new Date(this.currentUser.loginTime);
+        document.getElementById('loginTime').textContent = 
+            `Login: ${loginTime.toLocaleTimeString('id-ID')}`;
+        
+        // Update quota display
+        this.updateQuotaDisplay();
+        
+        // Update staff on leave
+        this.updateStaffOnLeave();
+        
+        // Update leave history
+        this.updateLeaveHistory();
+        
+        // Check if user has active leave
+        this.checkActiveLeave();
+    }
+    
+    getShiftName(shift) {
+        const shiftNames = {
+            'pagi': 'Pagi (06:00-14:00)',
+            'siang': 'Siang (14:00-22:00)',
+            'malam': 'Malam (22:00-06:00)'
+        };
+        return shiftNames[shift] || shift;
+    }
+    
+    updateQuotaDisplay() {
+        const perms = this.currentUser.permissions;
+        
+        // Short leave
+        document.getElementById('shortTotal').textContent = perms.dailyShort;
+        document.getElementById('shortUsed').textContent = perms.usedShort;
+        document.getElementById('shortRemaining').textContent = perms.dailyShort - perms.usedShort;
+        
+        // Meal leave
+        document.getElementById('mealTotal').textContent = perms.dailyMeal;
+        document.getElementById('mealUsed').textContent = perms.usedMeal;
+        document.getElementById('mealRemaining').textContent = perms.dailyMeal - perms.usedMeal;
+    }
+    
+    updateStaffOnLeave() {
+        const container = document.getElementById('staffOnLeaveList');
+        
+        if (this.staffOnLeave.length === 0) {
+            container.innerHTML = '<p style="color: #64b5f6; text-align: center;">Tidak ada staff yang sedang izin</p>';
+            return;
+        }
+        
+        const html = this.staffOnLeave.map(staff => `
             <div class="leave-card">
-                <div class="leave-header">
-                    <h4>${staff.name}</h4>
-                    <span class="status-badge status-active">Sedang Izin</span>
-                </div>
-                <div class="leave-details">
-                    <p><i class="fas fa-briefcase"></i> ${staff.jobdesk}</p>
-                    <p><i class="fas fa-clock"></i> ${staff.type}</p>
-                    <p><i class="fas fa-hourglass-half"></i> ${staff.duration} menit</p>
-                    <p class="leave-timer" data-start="${staff.startTime}">
-                        Waktu tersisa: <span class="time-remaining"></span>
-                    </p>
-                </div>
+                <h4>${staff.name}</h4>
+                <p style="color: #e0e0e0; font-size: 0.9em; margin: 5px 0;">
+                    <i class="fas fa-briefcase"></i> ${staff.jobdesk}
+                </p>
+                <p style="color: #e0e0e0; font-size: 0.9em; margin: 5px 0;">
+                    <i class="fas fa-clock"></i> ${staff.type} (${staff.duration} menit)
+                </p>
+                <p style="color: #D4AF37; font-size: 0.8em;">
+                    Mulai: ${new Date(staff.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                </p>
             </div>
         `).join('');
-
-        // Start timers for each leave
-        this.startLeaveTimers();
-    }
-
-    startLeaveTimers() {
-        document.querySelectorAll('.leave-timer').forEach(timer => {
-            const startTime = new Date(timer.dataset.start).getTime();
-            const duration = parseInt(timer.closest('.leave-details').querySelector('p:nth-child(3)').textContent.split(' ')[1]) * 60000;
-            const endTime = startTime + duration;
-
-            const updateTimer = () => {
-                const now = new Date().getTime();
-                const remaining = endTime - now;
-
-                if (remaining <= 0) {
-                    timer.querySelector('.time-remaining').textContent = 'Selesai';
-                    // Auto-remove from list when time's up
-                    setTimeout(() => this.removeCompletedLeaves(), 1000);
-                } else {
-                    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-                    timer.querySelector('.time-remaining').textContent = 
-                        `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }
-            };
-
-            updateTimer();
-            setInterval(updateTimer, 1000);
-        });
-    }
-
-    removeCompletedLeaves() {
-        const now = new Date().getTime();
-        this.staffOnLeave = this.staffOnLeave.filter(staff => {
-            const startTime = new Date(staff.startTime).getTime();
-            const duration = staff.duration * 60000;
-            return startTime + duration > now;
-        });
         
-        localStorage.setItem('staffOnLeave', JSON.stringify(this.staffOnLeave));
-        this.updateStaffOnLeave();
+        container.innerHTML = html;
     }
-
+    
     updateLeaveHistory() {
-        const container = document.getElementById('leaveHistory');
-        if (!container) return;
-
-        const userHistory = this.leaveHistory
-            .filter(record => record.username === this.currentUser.username)
-            .slice(-10) // Show last 10 records
-            .reverse();
-
-        if (userHistory.length === 0) {
-            container.innerHTML = '<p class="no-data">Belum ada riwayat izin</p>';
+        const tbody = document.getElementById('leaveHistoryTable');
+        
+        if (this.userHistory.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #64b5f6;">Belum ada riwayat izin</td>
+                </tr>
+            `;
             return;
         }
-
-        container.innerHTML = userHistory.map(record => `
+        
+        // Show last 5 records
+        const recentHistory = this.userHistory.slice(-5).reverse();
+        
+        const html = recentHistory.map(record => `
             <tr>
-                <td>${new Date(record.timestamp).toLocaleString('id-ID')}</td>
+                <td>${new Date(record.startTime).toLocaleDateString('id-ID')}</td>
                 <td>${record.type}</td>
                 <td>${record.jobdesk}</td>
                 <td>${record.duration} menit</td>
-                <td><span class="status-badge ${record.status === 'active' ? 'status-active' : 'status-inactive'}">
-                    ${record.status === 'active' ? 'Aktif' : 'Selesai'}
-                </span></td>
+                <td>
+                    <span class="status-badge ${record.status === 'active' ? 'status-active' : 'status-completed'}">
+                        ${record.status === 'active' ? 'Aktif' : 'Selesai'}
+                    </span>
+                </td>
             </tr>
         `).join('');
-    }
-
-    requestLeave(type) {
-        if (this.currentUser.currentLeave) {
-            this.showToast('Anda masih memiliki izin aktif!', 'error');
-            return;
-        }
-
-        // Check quota
-        if (type === 'short' && this.currentUser.permissions.usedShort >= this.currentUser.permissions.dailyShort) {
-            this.showToast('Kuota izin 15 menit sudah habis!', 'error');
-            return;
-        }
-
-        if (type === 'meal' && this.currentUser.permissions.usedMeal >= this.currentUser.permissions.dailyMeal) {
-            this.showToast('Kuota izin makan sudah habis!', 'error');
-            return;
-        }
-
-        // Show jobdesk selection
-        this.showJobdeskModal(type);
-    }
-
-    showJobdeskModal(type) {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2><i class="fas fa-briefcase"></i> Pilih Jobdesk</h2>
-                <div class="form-group">
-                    <label for="jobdeskSelect">Jobdesk</label>
-                    <select id="jobdeskSelect">
-                        <option value="">Pilih Jobdesk</option>
-                        ${this.jobdeskList.map(job => `<option value="${job}">${job}</option>`).join('')}
-                    </select>
-                </div>
-                <button id="submitLeaveBtn" class="btn-login">
-                    <i class="fas fa-paper-plane"></i> Ajukan Izin
-                </button>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        modal.style.display = 'flex';
-
-        const closeBtn = modal.querySelector('.close-modal');
-        const submitBtn = modal.querySelector('#submitLeaveBtn');
-        const jobdeskSelect = modal.querySelector('#jobdeskSelect');
-
-        closeBtn.onclick = () => modal.remove();
         
-        submitBtn.onclick = () => {
-            const jobdesk = jobdeskSelect.value;
-            if (!jobdesk) {
-                this.showToast('Pilih jobdesk terlebih dahulu!', 'error');
-                return;
-            }
-
-            // Check if jobdesk is already on leave
-            if (this.staffOnLeave.some(staff => staff.jobdesk === jobdesk)) {
-                this.showToast('Jobdesk ini sedang izin!', 'error');
-                return;
-            }
-
-            this.processLeaveRequest(type, jobdesk);
-            modal.remove();
-        };
+        tbody.innerHTML = html;
     }
-
-    processLeaveRequest(type, jobdesk) {
-        const duration = type === 'short' ? 15 : 7;
-        const leaveRecord = {
-            username: this.currentUser.username,
-            name: this.currentUser.username,
-            jobdesk,
-            type: type === 'short' ? 'Izin 15 Menit' : 'Izin Makan',
-            duration,
-            startTime: new Date().toISOString(),
-            status: 'active'
-        };
-
+    
+    checkActiveLeave() {
+        const activeLeave = this.userHistory.find(
+            record => record.status === 'active' && record.username === this.currentUser.username
+        );
+        
+        const endBtn = document.getElementById('endLeaveBtn');
+        if (activeLeave) {
+            endBtn.style.display = 'inline-flex';
+        } else {
+            endBtn.style.display = 'none';
+        }
+    }
+    
+    checkAndResetQuotas() {
+        const today = new Date().toDateString();
+        
+        if (this.currentUser.lastReset !== today) {
+            this.currentUser.permissions.usedShort = 0;
+            this.currentUser.permissions.usedMeal = 0;
+            this.currentUser.lastReset = today;
+            
+            localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+            this.updateQuotaDisplay();
+            
+            this.showMessage('Kuota izin telah direset untuk hari ini!', 'info');
+        }
+    }
+    
+    setupEventListeners() {
+        // Leave request buttons
+        document.getElementById('requestShortBtn').addEventListener('click', () => {
+            this.requestLeave('short');
+        });
+        
+        document.getElementById('requestMealBtn').addEventListener('click', () => {
+            this.requestLeave('meal');
+        });
+        
+        // End leave button
+        document.getElementById('endLeaveBtn').addEventListener('click', () => {
+            this.endCurrentLeave();
+        });
+        
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        });
+        
+        // Leave modal buttons
+        document.getElementById('submitLeaveBtn').addEventListener('click', () => {
+            this.submitLeaveRequest();
+        });
+        
+        document.getElementById('cancelLeaveBtn').addEventListener('click', () => {
+            document.getElementById('leaveModal').style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('leaveModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('leaveModal')) {
+                document.getElementById('leaveModal').style.display = 'none';
+            }
+        });
+    }
+    
+    requestLeave(type) {
+        // Check if user already has active leave
+        const activeLeave = this.userHistory.find(
+            record => record.status === 'active' && record.username === this.currentUser.username
+        );
+        
+        if (activeLeave) {
+            this.showMessage('Anda masih memiliki izin aktif!', 'error');
+            return;
+        }
+        
+        // Check quota
+        const perms = this.currentUser.permissions;
+        if (type === 'short' && perms.usedShort >= perms.dailyShort) {
+            this.showMessage('Kuota izin 15 menit sudah habis!', 'error');
+            return;
+        }
+        
+        if (type === 'meal' && perms.usedMeal >= perms.dailyMeal) {
+            this.showMessage('Kuota izin makan sudah habis!', 'error');
+            return;
+        }
+        
+        // Check if jobdesk is already on leave
+        const jobdeskOnLeave = this.staffOnLeave.find(
+            staff => staff.jobdesk === this.currentUser.jobdesk
+        );
+        
+        if (jobdeskOnLeave) {
+            this.showMessage('Jobdesk ini sedang izin!', 'error');
+            return;
+        }
+        
+        // Store leave type and show modal
+        this.currentLeaveType = type;
+        const modalTitle = type === 'short' ? 'Ajukan Izin 15 Menit' : 'Ajukan Izin Makan';
+        document.getElementById('modalTitle').textContent = modalTitle;
+        document.getElementById('jobdeskInput').value = this.currentUser.jobdesk || '';
+        document.getElementById('leaveModal').style.display = 'flex';
+    }
+    
+    submitLeaveRequest() {
+        const jobdesk = document.getElementById('jobdeskInput').value.trim();
+        
+        if (!jobdesk) {
+            this.showMessage('Masukkan jobdesk!', 'error');
+            return;
+        }
+        
+        const duration = this.currentLeaveType === 'short' ? 15 : 7;
+        const type = this.currentLeaveType === 'short' ? 'Izin 15 Menit' : 'Izin Makan';
+        
         // Update user quota
-        if (type === 'short') {
+        if (this.currentLeaveType === 'short') {
             this.currentUser.permissions.usedShort++;
         } else {
             this.currentUser.permissions.usedMeal++;
         }
-
-        // Set current leave
-        this.currentUser.currentLeave = leaveRecord;
-
-        // Add to staff on leave list
+        
+        // Create leave record
+        const leaveRecord = {
+            username: this.currentUser.username,
+            name: this.currentUser.name,
+            jobdesk: jobdesk,
+            type: type,
+            duration: duration,
+            startTime: new Date().toISOString(),
+            status: 'active'
+        };
+        
+        // Add to staff on leave
         this.staffOnLeave.push(leaveRecord);
-
+        
         // Add to history
         this.leaveHistory.push(leaveRecord);
-
+        this.userHistory.push(leaveRecord);
+        
         // Save to localStorage
         localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
         localStorage.setItem('staffOnLeave', JSON.stringify(this.staffOnLeave));
         localStorage.setItem('leaveHistory', JSON.stringify(this.leaveHistory));
-
+        
+        // Hide modal
+        document.getElementById('leaveModal').style.display = 'none';
+        
         // Update displays
         this.updateQuotaDisplay();
         this.updateStaffOnLeave();
         this.updateLeaveHistory();
-
-        this.showToast('Izin berhasil diajukan!', 'success');
+        this.checkActiveLeave();
+        
+        this.showMessage('Izin berhasil diajukan!', 'success');
     }
-
+    
     endCurrentLeave() {
-        if (!this.currentUser.currentLeave) {
-            this.showToast('Tidak ada izin aktif!', 'error');
+        const activeIndex = this.staffOnLeave.findIndex(
+            staff => staff.username === this.currentUser.username && staff.status === 'active'
+        );
+        
+        if (activeIndex === -1) {
+            this.showMessage('Tidak ada izin aktif!', 'error');
             return;
         }
-
-        // Remove from staff on leave
-        this.staffOnLeave = this.staffOnLeave.filter(
-            staff => staff.username !== this.currentUser.username
-        );
-
-        // Update history
-        const leaveIndex = this.leaveHistory.findIndex(
+        
+        // Update status in staff on leave
+        this.staffOnLeave[activeIndex].status = 'completed';
+        
+        // Update status in leave history
+        const historyIndex = this.leaveHistory.findIndex(
             record => record.username === this.currentUser.username && record.status === 'active'
         );
         
-        if (leaveIndex !== -1) {
-            this.leaveHistory[leaveIndex].status = 'completed';
+        if (historyIndex !== -1) {
+            this.leaveHistory[historyIndex].status = 'completed';
         }
-
-        // Clear current leave
-        this.currentUser.currentLeave = null;
-
+        
+        // Remove from staff on leave list
+        this.staffOnLeave = this.staffOnLeave.filter(staff => staff.status === 'active');
+        
         // Save to localStorage
-        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
         localStorage.setItem('staffOnLeave', JSON.stringify(this.staffOnLeave));
         localStorage.setItem('leaveHistory', JSON.stringify(this.leaveHistory));
-
+        
         // Update displays
         this.updateStaffOnLeave();
         this.updateLeaveHistory();
-
-        this.showToast('Izin telah diakhiri!', 'success');
+        this.checkActiveLeave();
+        
+        this.showMessage('Izin telah diakhiri!', 'success');
     }
-
+    
     startClock() {
-        const clockElement = document.getElementById('dashboardClock');
-        if (!clockElement) return;
-
-        const updateTime = () => {
+        const updateClock = () => {
             const now = new Date();
             const timeString = now.toLocaleTimeString('id-ID', {
                 hour12: false,
@@ -318,48 +362,30 @@ class Dashboard {
                 second: '2-digit'
             });
             
-            clockElement.innerHTML = `
-                <div class="time-display">
-                    <i class="fas fa-clock"></i>
-                    <span class="time">${timeString}</span>
-                </div>
-            `;
+            document.getElementById('dashboardClock').textContent = timeString;
         };
-
-        updateTime();
-        setInterval(updateTime, 1000);
+        
+        updateClock();
+        setInterval(updateClock, 1000);
     }
-
-    initializeEventListeners() {
-        // Leave request buttons
-        document.getElementById('requestShortLeave')?.addEventListener('click', () => this.requestLeave('short'));
-        document.getElementById('requestMealLeave')?.addEventListener('click', () => this.requestLeave('meal'));
-        document.getElementById('endCurrentLeave')?.addEventListener('click', () => this.endCurrentLeave());
-        document.getElementById('logoutBtn')?.addEventListener('click', () => this.logout());
-    }
-
-    logout() {
-        localStorage.removeItem('currentUser');
-        window.location.href = 'index.html';
-    }
-
-    showToast(message, type = 'info') {
-        // Toast implementation (same as in auth.js)
-        const existingToasts = document.querySelectorAll('.toast');
-        existingToasts.forEach(toast => toast.remove());
-
+    
+    showMessage(message, type) {
+        // Remove existing messages
+        const existing = document.querySelectorAll('.toast');
+        existing.forEach(msg => msg.remove());
+        
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
         document.body.appendChild(toast);
-
+        
         setTimeout(() => {
-            if (toast.parentNode) toast.remove();
-        }, 3500);
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
     }
 }
 
-// Initialize dashboard when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    window.dashboard = new Dashboard();
-});
+// Make Dashboard globally available
+window.Dashboard = Dashboard;
