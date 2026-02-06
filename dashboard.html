@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistem Izin Staff</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="user-info">
+                <h2 id="userName">Nama Staff</h2>
+                <p>Shift: <span id="userShift"></span></p>
+                <p>Login: <span id="loginTime"></span></p>
+            </div>
+            <div class="header-actions">
+                <div class="clock-display" id="dashboardClock"></div>
+                <button id="logoutBtn" class="btn-admin">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="gold-line"></div>
+
+        <!-- Quota Display -->
+        <div class="quota-display">
+            <div class="quota-card">
+                <h3><i class="fas fa-walking"></i> Izin 15 Menit</h3>
+                <div class="quota-item">
+                    <span>Total:</span>
+                    <span id="shortLeaveTotal">4</span>
+                </div>
+                <div class="quota-item">
+                    <span>Digunakan:</span>
+                    <span id="shortLeaveUsed">0</span>
+                </div>
+                <div class="quota-item">
+                    <span>Sisa:</span>
+                    <span id="shortLeaveRemaining">4</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" id="shortProgress"></div>
+                </div>
+                <button id="requestShortLeave" class="btn-login" style="margin-top: 15px;">
+                    <i class="fas fa-paper-plane"></i> Ajukan Izin 15 Menit
+                </button>
+            </div>
+
+            <div class="quota-card">
+                <h3><i class="fas fa-utensils"></i> Izin Makan</h3>
+                <div class="quota-item">
+                    <span>Total:</span>
+                    <span id="mealLeaveTotal">3</span>
+                </div>
+                <div class="quota-item">
+                    <span>Digunakan:</span>
+                    <span id="mealLeaveUsed">0</span>
+                </div>
+                <div class="quota-item">
+                    <span>Sisa:</span>
+                    <span id="mealLeaveRemaining">3</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" id="mealProgress"></div>
+                </div>
+                <button id="requestMealLeave" class="btn-login" style="margin-top: 15px;">
+                    <i class="fas fa-paper-plane"></i> Ajukan Izin Makan
+                </button>
+            </div>
+        </div>
+
+        <!-- Current Leave Status -->
+        <button id="endCurrentLeave" class="btn-admin" style="width: 100%; margin: 20px 0;">
+            <i class="fas fa-stop-circle"></i> Akhiri Izin Saat Ini
+        </button>
+
+        <!-- Staff Currently on Leave -->
+        <div class="staff-on-leave">
+            <h3><i class="fas fa-users"></i> Staff Sedang Izin</h3>
+            <div class="leave-list" id="currentLeaveList">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
+        <!-- Leave History -->
+        <div class="quota-card" style="margin-top: 30px;">
+            <h3><i class="fas fa-history"></i> Riwayat Izin Anda</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Jenis</th>
+                            <th>Jobdesk</th>
+                            <th>Durasi</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaveHistory">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+    <script src="js/utils.js"></script>
+</body>
+</html>
