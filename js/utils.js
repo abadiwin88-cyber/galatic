@@ -1,4 +1,4 @@
-// Utility functions
+// Utility Functions
 class Utils {
     static formatTime(date) {
         return date.toLocaleTimeString('id-ID', {
@@ -18,7 +18,6 @@ class Utils {
 
     static formatDateTime(date) {
         return date.toLocaleString('id-ID', {
-            weekday: 'short',
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -42,57 +41,31 @@ class Utils {
         return { minutes, seconds, expired: false };
     }
 
-    static validateTime(timeString) {
-        const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-        return timeRegex.test(timeString);
-    }
-
-    static debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
     static generateId() {
-        return 'id_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    static getShiftFromTime(time) {
-        const hour = parseInt(time.split(':')[0]);
-        
-        if (hour >= 6 && hour < 14) return 'pagi';
-        if (hour >= 14 && hour < 22) return 'siang';
-        return 'malam';
-    }
-
-    static isShiftActive(shiftStart, loginWindow) {
-        const now = new Date();
-        const [hours, minutes] = shiftStart.split(':');
-        const shiftTime = new Date();
-        shiftTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        
-        const loginEnd = new Date(shiftTime);
-        loginEnd.setHours(loginEnd.getHours() + loginWindow);
-        
-        return now >= shiftTime && now <= loginEnd;
+        return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 }
 
-// LocalStorage helper
+// LocalStorage Helper
 class StorageHelper {
     static get(key, defaultValue = null) {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : defaultValue;
+        try {
+            const item = localStorage.getItem(key);
+            return item ? JSON.parse(item) : defaultValue;
+        } catch (error) {
+            console.error('Error reading from localStorage:', error);
+            return defaultValue;
+        }
     }
 
     static set(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+            return true;
+        } catch (error) {
+            console.error('Error writing to localStorage:', error);
+            return false;
+        }
     }
 
     static remove(key) {
@@ -104,6 +77,6 @@ class StorageHelper {
     }
 }
 
-// Export for use in other files
+// Export for use
 window.Utils = Utils;
 window.StorageHelper = StorageHelper;
