@@ -3,41 +3,1086 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Sistem Izin Staff</title>
+    <title>Panel Admin - Sistem Izin Staff</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Admin Specific Styles */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #0c2a4a 0%, #0a192f 100%);
+            padding: 25px 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-header h1 {
+            color: #D4AF37;
+            font-size: 2.2em;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .admin-tabs {
+            display: flex;
+            background: rgba(15, 35, 65, 0.8);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            color: #64b5f6;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #D4AF37 0%, #b8941f 100%);
+            color: #0a192f;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .admin-section {
+            background: rgba(15, 35, 65, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .admin-section h2 {
+            color: #D4AF37;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-card {
+            background: rgba(10, 25, 47, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #64b5f6;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(15, 35, 65, 0.8);
+            border: 2px solid rgba(100, 181, 246, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #D4AF37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+
+        .table-card {
+            background: rgba(10, 25, 47, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(100, 181, 246, 0.1);
+            color: #e0e0e0;
+        }
+
+        table tr:hover {
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .btn-edit {
+            background: rgba(33, 150, 243, 0.2);
+            color: #64b5f6;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-edit:hover {
+            background: rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-delete {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+
+        .btn-save {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-save:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(15, 35, 65, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            color: #D4AF37;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #64b5f6;
+            font-size: 0.9em;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #D4AF37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+
+        .preview-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(10, 25, 47, 0.9);
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .preview-header {
+            color: #D4AF37;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .preview-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .preview-item {
+            background: rgba(15, 35, 65, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .preview-title {
+            color: #64b5f6;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .preview-value {
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #D4AF37;
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .upload-area i {
+            font-size: 3em;
+            color: #D4AF37;
+            margin-bottom: 15px;
+        }
+
+        .upload-area p {
+            color: #64b5f6;
+            margin-bottom: 10px;
+        }
+
+        .upload-area small {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #logoPreview, #bgPreview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            margin-top: 15px;
+            display: none;
+        }
+
+        .permission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .permission-item {
+            background: rgba(10, 25, 47, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .permission-title {
+            color: #64b5f6;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #0a192f 0%, #0c2a4a 100%);
+            border-radius: 15px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            color: #D4AF37;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #D4AF37;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .admin-nav {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .admin-tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab-btn {
+                flex: 1 0 auto;
+                min-width: 120px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="admin-container">
+        <!-- Admin Header -->
         <div class="admin-header">
             <h1><i class="fas fa-cogs"></i> Panel Admin</h1>
-            <button id="backToLogin" class="btn-admin">
-                <i class="fas fa-arrow-left"></i> Kembali ke Login
-            </button>
+            <div class="admin-nav">
+                <button id="backToLogin" class="btn-admin">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Login
+                </button>
+                <div class="clock-display" id="adminClock"></div>
+            </div>
         </div>
 
         <div class="gold-line"></div>
 
+        <!-- Admin Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value" id="totalStaff">10</div>
+                <div class="stat-label">Total Staff</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div class="stat-value" id="activeLeaves">0</div>
+                <div class="stat-label">Sedang Izin</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-value" id="todayLeaves">0</div>
+                <div class="stat-label">Izin Hari Ini</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-value" id="currentTime">00:00</div>
+                <div class="stat-label">Waktu Server</div>
+            </div>
+        </div>
+
+        <!-- Admin Tabs -->
         <div class="admin-tabs">
-            <button class="tab-btn active" data-tab="shifts">Kelola Shift</button>
-            <button class="tab-btn" data-tab="jobdesk">Kelola Jobdesk</button>
-            <button class="tab-btn" data-tab="settings">Pengaturan Izin</button>
-            <button class="tab-btn" data-tab="appearance">Tampilan</button>
-            <button class="tab-btn" data-tab="reports">Laporan</button>
+            <button class="tab-btn active" data-tab="staff">
+                <i class="fas fa-users"></i> Kelola Staff
+            </button>
+            <button class="tab-btn" data-tab="shifts">
+                <i class="fas fa-clock"></i> Kelola Shift
+            </button>
+            <button class="tab-btn" data-tab="jobdesk">
+                <i class="fas fa-briefcase"></i> Kelola Jobdesk
+            </button>
+            <button class="tab-btn" data-tab="permissions">
+                <i class="fas fa-user-check"></i> Pengaturan Izin
+            </button>
+            <button class="tab-btn" data-tab="appearance">
+                <i class="fas fa-palette"></i> Tampilan
+            </button>
+            <button class="tab-btn" data-tab="reports">
+                <i class="fas fa-chart-bar"></i> Laporan
+            </button>
         </div>
 
+        <!-- Tab Content: Kelola Staff -->
+        <div class="tab-content active" id="staff">
+            <div class="admin-section">
+                <h2><i class="fas fa-users"></i> Manajemen Staff</h2>
+                
+                <!-- Form Tambah Staff -->
+                <div class="form-card">
+                    <h3><i class="fas fa-user-plus"></i> Tambah Staff Baru</h3>
+                    <form id="addStaffForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nama Lengkap</label>
+                                <input type="text" id="staffName" placeholder="Masukkan nama lengkap" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" id="staffUsername" placeholder="Masukkan username" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="staffPassword" placeholder="Masukkan password" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Konfirmasi Password</label>
+                                <input type="password" id="staffConfirmPassword" placeholder="Konfirmasi password" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Departemen</label>
+                                <select id="staffDepartment" required>
+                                    <option value="">Pilih Departemen</option>
+                                    <option value="IT">IT</option>
+                                    <option value="HR">HR</option>
+                                    <option value="Security">Security</option>
+                                    <option value="Cleaning">Cleaning</option>
+                                    <option value="Reception">Reception</option>
+                                    <option value="Kitchen">Kitchen</option>
+                                    <option value="Management">Management</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Jobdesk</label>
+                                <input type="text" id="staffJobdesk" placeholder="Masukkan jobdesk" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Shift Default</label>
+                                <select id="staffShift" required>
+                                    <option value="pagi">Shift Pagi (06:00-14:00)</option>
+                                    <option value="siang">Shift Siang (14:00-22:00)</option>
+                                    <option value="malam">Shift Malam (22:00-06:00)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Hak Akses</label>
+                                <select id="staffIsAdmin">
+                                    <option value="false">Staff Biasa</option>
+                                    <option value="true">Administrator</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-login">
+                            <i class="fas fa-save"></i> Simpan Staff
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Daftar Staff -->
+                <div class="table-card">
+                    <h3><i class="fas fa-list"></i> Daftar Staff</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Nama</th>
+                                    <th>Departemen</th>
+                                    <th>Jobdesk</th>
+                                    <th>Shift</th>
+                                    <th>Akses</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffListTable">
+                                <!-- Data staff akan diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Kelola Shift -->
         <div class="tab-content" id="shifts">
-            <!-- Shift management content -->
+            <div class="admin-section">
+                <h2><i class="fas fa-clock"></i> Pengaturan Shift</h2>
+                
+                <div class="form-card">
+                    <h3><i class="fas fa-plus-circle"></i> Tambah Shift Baru</h3>
+                    <form id="addShiftForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nama Shift</label>
+                                <input type="text" id="shiftName" placeholder="Contoh: Pagi, Siang, Malam" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Waktu Mulai</label>
+                                <input type="time" id="shiftStart" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Waktu Selesai</label>
+                                <input type="time" id="shiftEnd" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Durasi Login (jam)</label>
+                                <input type="number" id="shiftLoginWindow" min="1" max="4" value="2" required>
+                                <small>Staff hanya bisa login dalam waktu ini dari shift dimulai</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Warna Shift</label>
+                                <input type="color" id="shiftColor" value="#D4AF37">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-login">
+                            <i class="fas fa-save"></i> Simpan Shift
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="table-card">
+                    <h3><i class="fas fa-list-alt"></i> Daftar Shift</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Waktu</th>
+                                    <th>Durasi Login</th>
+                                    <th>Warna</th>
+                                    <th>Jumlah Staff</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shiftListTable">
+                                <!-- Data shift akan diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="tab-content" id="jobdesk" style="display: none;">
-            <!-- Jobdesk management content -->
+        <!-- Tab Content: Kelola Jobdesk -->
+        <div class="tab-content" id="jobdesk">
+            <div class="admin-section">
+                <h2><i class="fas fa-briefcase"></i> Pengaturan Jobdesk</h2>
+                
+                <div class="form-card">
+                    <h3><i class="fas fa-plus-circle"></i> Tambah Jobdesk Baru</h3>
+                    <form id="addJobdeskForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nama Jobdesk</label>
+                                <input type="text" id="jobdeskName" placeholder="Contoh: IT Support, Security" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Departemen</label>
+                                <select id="jobdeskDepartment" required>
+                                    <option value="">Pilih Departemen</option>
+                                    <option value="IT">IT</option>
+                                    <option value="HR">HR</option>
+                                    <option value="Security">Security</option>
+                                    <option value="Cleaning">Cleaning</option>
+                                    <option value="Reception">Reception</option>
+                                    <option value="Kitchen">Kitchen</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Deskripsi</label>
+                                <textarea id="jobdeskDescription" rows="3" placeholder="Deskripsi jobdesk"></textarea>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-login">
+                            <i class="fas fa-save"></i> Simpan Jobdesk
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="table-card">
+                    <h3><i class="fas fa-list-ul"></i> Daftar Jobdesk</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama Jobdesk</th>
+                                    <th>Departemen</th>
+                                    <th>Deskripsi</th>
+                                    <th>Jumlah Staff</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobdeskListTable">
+                                <!-- Data jobdesk akan diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Other tab contents -->
+        <!-- Tab Content: Pengaturan Izin -->
+        <div class="tab-content" id="permissions">
+            <div class="admin-section">
+                <h2><i class="fas fa-user-check"></i> Pengaturan Izin</h2>
+                
+                <div class="permission-grid">
+                    <!-- Izin 15 Menit -->
+                    <div class="permission-item">
+                        <h3 class="permission-title">
+                            <i class="fas fa-walking"></i> Izin 15 Menit
+                        </h3>
+                        <div class="form-group">
+                            <label>Jumlah izin per hari</label>
+                            <input type="number" id="shortLeaveCount" min="0" max="10" value="4">
+                        </div>
+                        <div class="form-group">
+                            <label>Durasi izin (menit)</label>
+                            <input type="number" id="shortLeaveDuration" min="1" max="60" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label>Waktu antar izin (menit)</label>
+                            <input type="number" id="shortLeaveCooldown" min="0" max="120" value="30">
+                        </div>
+                    </div>
+                    
+                    <!-- Izin Makan -->
+                    <div class="permission-item">
+                        <h3 class="permission-title">
+                            <i class="fas fa-utensils"></i> Izin Makan
+                        </h3>
+                        <div class="form-group">
+                            <label>Jumlah izin per hari</label>
+                            <input type="number" id="mealLeaveCount" min="0" max="10" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label>Durasi izin (menit)</label>
+                            <input type="number" id="mealLeaveDuration" min="1" max="60" value="7">
+                        </div>
+                        <div class="form-group">
+                            <label>Waktu antar izin (menit)</label>
+                            <input type="number" id="mealLeaveCooldown" min="0" max="120" value="60">
+                        </div>
+                    </div>
+                    
+                    <!-- Pengaturan Umum -->
+                    <div class="permission-item">
+                        <h3 class="permission-title">
+                            <i class="fas fa-cog"></i> Pengaturan Umum
+                        </h3>
+                        <div class="form-group">
+                            <label>Max staff izin bersamaan per jobdesk</label>
+                            <input type="number" id="maxConcurrentLeave" min="1" max="10" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Reset kuota harian pada</label>
+                            <input type="time" id="quotaResetTime" value="00:00">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="allowEarlyLogin" checked>
+                                Izinkan login 15 menit sebelum shift
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button id="savePermissions" class="btn-login">
+                        <i class="fas fa-save"></i> Simpan Semua Pengaturan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Tampilan -->
+        <div class="tab-content" id="appearance">
+            <div class="admin-section">
+                <h2><i class="fas fa-palette"></i> Pengaturan Tampilan</h2>
+                
+                <!-- Logo Aplikasi -->
+                <div class="form-card">
+                    <h3><i class="fas fa-image"></i> Logo Aplikasi</h3>
+                    <div class="upload-area" id="logoUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Klik untuk upload logo</p>
+                        <small>Format: PNG, JPG. Ukuran maks: 2MB</small>
+                        <input type="file" id="logoUpload" accept="image/*" style="display: none;">
+                        <img id="logoPreview" src="" alt="Preview Logo">
+                    </div>
+                    <div class="form-group">
+                        <label>Ukuran logo (px)</label>
+                        <input type="range" id="logoSize" min="50" max="300" value="120">
+                        <span id="logoSizeValue">120px</span>
+                    </div>
+                </div>
+                
+                <!-- Background -->
+                <div class="form-card">
+                    <h3><i class="fas fa-image"></i> Background</h3>
+                    <div class="upload-area" id="bgUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Klik untuk upload background</p>
+                        <small>Format: JPG, PNG. Ukuran maks: 5MB</small>
+                        <input type="file" id="bgUpload" accept="image/*" style="display: none;">
+                        <img id="bgPreview" src="" alt="Preview Background">
+                    </div>
+                    <div class="form-group">
+                        <label>Opacity background</label>
+                        <input type="range" id="bgOpacity" min="0" max="100" value="15">
+                        <span id="bgOpacityValue">15%</span>
+                    </div>
+                </div>
+                
+                <!-- Warna Theme -->
+                <div class="form-card">
+                    <h3><i class="fas fa-fill-drip"></i> Warna Theme</h3>
+                    <div class="color-picker">
+                        <div class="color-option" style="background: #0a192f;" data-color="#0a192f"></div>
+                        <div class="color-option" style="background: #0c2a4a;" data-color="#0c2a4a"></div>
+                        <div class="color-option" style="background: #1a1a2e;" data-color="#1a1a2e"></div>
+                        <div class="color-option" style="background: #16213e;" data-color="#16213e"></div>
+                        <div class="color-option" style="background: #0f3460;" data-color="#0f3460"></div>
+                    </div>
+                    
+                    <div class="form-row" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Warna primer</label>
+                            <input type="color" id="primaryColor" value="#0a192f">
+                        </div>
+                        <div class="form-group">
+                            <label>Warna aksen (emas)</label>
+                            <input type="color" id="accentColor" value="#D4AF37">
+                        </div>
+                        <div class="form-group">
+                            <label>Warna sekunder</label>
+                            <input type="color" id="secondaryColor" value="#64b5f6">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Preview -->
+                <div class="preview-section">
+                    <h3 class="preview-header"><i class="fas fa-eye"></i> Preview Tampilan</h3>
+                    <div class="preview-content">
+                        <div class="preview-item">
+                            <div class="preview-title">Background</div>
+                            <div class="preview-value" id="previewBg">Hitam Kebiruan</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-title">Logo</div>
+                            <div class="preview-value" id="previewLogo">Default</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-title">Warna Theme</div>
+                            <div class="preview-value" id="previewTheme">Gold & Blue</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button id="saveAppearance" class="btn-login">
+                        <i class="fas fa-save"></i> Simpan Pengaturan Tampilan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Laporan -->
+        <div class="tab-content" id="reports">
+            <div class="admin-section">
+                <h2><i class="fas fa-chart-bar"></i> Laporan & Analitik</h2>
+                
+                <div class="form-card">
+                    <h3><i class="fas fa-filter"></i> Filter Laporan</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Periode</label>
+                            <select id="reportPeriod">
+                                <option value="today">Hari Ini</option>
+                                <option value="week">Minggu Ini</option>
+                                <option value="month">Bulan Ini</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="customDateRange" style="display: none;">
+                            <label>Tanggal</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="date" id="reportStartDate">
+                                <span>s/d</span>
+                                <input type="date" id="reportEndDate">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Departemen</label>
+                            <select id="reportDepartment">
+                                <option value="all">Semua Departemen</option>
+                                <option value="IT">IT</option>
+                                <option value="HR">HR</option>
+                                <option value="Security">Security</option>
+                                <option value="Cleaning">Cleaning</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="generateReport" class="btn-login">
+                        <i class="fas fa-chart-line"></i> Generate Laporan
+                    </button>
+                </div>
+                
+                <!-- Statistik -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-value" id="reportTotal">0</div>
+                        <div class="stat-label">Total Izin</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value" id="reportAverage">0</div>
+                        <div class="stat-label">Rata-rata Durasi</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="stat-value" id="reportUsers">0</div>
+                        <div class="stat-label">Staff Aktif</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="stat-value" id="reportUtilization">0%</div>
+                        <div class="stat-label">Utilisasi</div>
+                    </div>
+                </div>
+                
+                <!-- Chart Placeholder -->
+                <div class="table-card">
+                    <h3><i class="fas fa-chart-bar"></i> Grafik Penggunaan Izin</h3>
+                    <div id="chartContainer" style="height: 300px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.1); border-radius: 8px;">
+                        <p style="color: #64b5f6;">Chart akan ditampilkan di sini</p>
+                    </div>
+                </div>
+                
+                <!-- Tabel Detail -->
+                <div class="table-card">
+                    <h3><i class="fas fa-table"></i> Detail Laporan</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Staff</th>
+                                    <th>Departemen</th>
+                                    <th>Jenis Izin</th>
+                                    <th>Tanggal</th>
+                                    <th>Durasi</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportDetailTable">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: #64b5f6;">
+                                        Pilih filter dan klik "Generate Laporan"
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Export Options -->
+                <div style="text-align: center; margin-top: 30px;">
+                    <button id="exportPDF" class="btn-admin">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                    <button id="exportExcel" class="btn-login" style="margin-left: 15px;">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Modal Edit -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-edit"></i> Edit Data
+                </h2>
+                <button class="close-modal" id="closeEditModal">&times;</button>
+            </div>
+            <div id="modalBody">
+                <!-- Konten modal akan diisi oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="data/staff.js"></script>
     <script src="js/admin.js"></script>
+    <script>
+        // Initialize admin panel when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminPanel = new AdminPanel();
+            adminPanel.init();
+        });
+    </script>
 </body>
 </html>
