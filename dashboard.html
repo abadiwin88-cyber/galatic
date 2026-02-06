@@ -3,113 +3,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistem Izin Staff</title>
+    <title>Dashboard Staff</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #0c2a4a 0%, #0a192f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .user-info h2 {
+            color: #D4AF37;
+            margin-bottom: 5px;
+        }
+        
+        .user-info p {
+            color: #64b5f6;
+            font-size: 0.9em;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .clock-display {
+            background: rgba(10, 25, 47, 0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: #D4AF37;
+            font-weight: bold;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .quota-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .quota-card {
+            background: rgba(15, 35, 65, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .quota-card h3 {
+            color: #64b5f6;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quota-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #D4AF37 0%, #b8941f 100%);
+            color: #0a192f;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #64b5f6 0%, #1e88e5 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .staff-on-leave {
+            background: rgba(15, 35, 65, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            margin-bottom: 30px;
+        }
+        
+        .staff-on-leave h3 {
+            color: #D4AF37;
+            margin-bottom: 15px;
+        }
+        
+        .leave-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .leave-card {
+            background: rgba(10, 25, 47, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #D4AF37;
+        }
+        
+        .leave-card h4 {
+            color: #64b5f6;
+            margin-bottom: 5px;
+        }
+        
+        .history-section {
+            background: rgba(15, 35, 65, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .history-section h3 {
+            color: #D4AF37;
+            margin-bottom: 15px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table th {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(100, 181, 246, 0.1);
+            color: #e0e0e0;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        
+        .status-completed {
+            background: rgba(158, 158, 158, 0.2);
+            color: #9E9E9E;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: rgba(15, 35, 65, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="dashboard-container">
         <!-- Header -->
         <div class="dashboard-header">
             <div class="user-info">
                 <h2 id="userName">Nama Staff</h2>
-                <p>Shift: <span id="userShift"></span></p>
-                <p>Login: <span id="loginTime"></span></p>
+                <p id="userDetails">Shift: - | Departemen: - | Jobdesk: -</p>
+                <p id="loginTime">Login: -</p>
             </div>
-            <div class="header-actions">
+            <div class="header-controls">
                 <div class="clock-display" id="dashboardClock"></div>
-                <button id="logoutBtn" class="btn-admin">
+                <button class="btn btn-secondary" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
         </div>
-
-        <div class="gold-line"></div>
-
-        <!-- Quota Display -->
-        <div class="quota-display">
+        
+        <!-- Quota Section -->
+        <div class="quota-section">
             <div class="quota-card">
                 <h3><i class="fas fa-walking"></i> Izin 15 Menit</h3>
                 <div class="quota-item">
                     <span>Total:</span>
-                    <span id="shortLeaveTotal">4</span>
+                    <span id="shortTotal">4</span>
                 </div>
                 <div class="quota-item">
                     <span>Digunakan:</span>
-                    <span id="shortLeaveUsed">0</span>
+                    <span id="shortUsed">0</span>
                 </div>
                 <div class="quota-item">
                     <span>Sisa:</span>
-                    <span id="shortLeaveRemaining">4</span>
+                    <span id="shortRemaining">4</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress" id="shortProgress"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="requestShortBtn">
+                        <i class="fas fa-paper-plane"></i> Ajukan Izin
+                    </button>
                 </div>
-                <button id="requestShortLeave" class="btn-login" style="margin-top: 15px;">
-                    <i class="fas fa-paper-plane"></i> Ajukan Izin 15 Menit
-                </button>
             </div>
-
+            
             <div class="quota-card">
                 <h3><i class="fas fa-utensils"></i> Izin Makan</h3>
                 <div class="quota-item">
                     <span>Total:</span>
-                    <span id="mealLeaveTotal">3</span>
+                    <span id="mealTotal">3</span>
                 </div>
                 <div class="quota-item">
                     <span>Digunakan:</span>
-                    <span id="mealLeaveUsed">0</span>
+                    <span id="mealUsed">0</span>
                 </div>
                 <div class="quota-item">
                     <span>Sisa:</span>
-                    <span id="mealLeaveRemaining">3</span>
+                    <span id="mealRemaining">3</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress" id="mealProgress"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="requestMealBtn">
+                        <i class="fas fa-paper-plane"></i> Ajukan Izin
+                    </button>
                 </div>
-                <button id="requestMealLeave" class="btn-login" style="margin-top: 15px;">
-                    <i class="fas fa-paper-plane"></i> Ajukan Izin Makan
-                </button>
             </div>
         </div>
-
-        <!-- Current Leave Status -->
-        <button id="endCurrentLeave" class="btn-admin" style="width: 100%; margin: 20px 0;">
-            <i class="fas fa-stop-circle"></i> Akhiri Izin Saat Ini
-        </button>
-
-        <!-- Staff Currently on Leave -->
+        
+        <!-- Current Leave Button -->
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn btn-secondary" id="endLeaveBtn" style="display: none;">
+                <i class="fas fa-stop-circle"></i> Akhiri Izin Saat Ini
+            </button>
+        </div>
+        
+        <!-- Staff On Leave -->
         <div class="staff-on-leave">
             <h3><i class="fas fa-users"></i> Staff Sedang Izin</h3>
-            <div class="leave-list" id="currentLeaveList">
-                <!-- Dynamic content -->
+            <div class="leave-grid" id="staffOnLeaveList">
+                <p style="color: #64b5f6; text-align: center;">Tidak ada staff yang sedang izin</p>
             </div>
         </div>
-
+        
         <!-- Leave History -->
-        <div class="quota-card" style="margin-top: 30px;">
+        <div class="history-section">
             <h3><i class="fas fa-history"></i> Riwayat Izin Anda</h3>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Waktu</th>
+                            <th>Tanggal</th>
                             <th>Jenis</th>
                             <th>Jobdesk</th>
                             <th>Durasi</th>
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="leaveHistory">
-                        <!-- Dynamic content -->
+                    <tbody id="leaveHistoryTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #64b5f6;">Belum ada riwayat izin</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+    
+    <!-- Leave Request Modal -->
+    <div class="modal" id="leaveModal">
+        <div class="modal-content">
+            <h3 style="color: #D4AF37; margin-bottom: 20px;" id="modalTitle">Ajukan Izin</h3>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; color: #64b5f6; margin-bottom: 8px;">Jobdesk</label>
+                <input type="text" id="jobdeskInput" class="form-input" style="width: 100%;" 
+                       placeholder="Masukkan jobdesk" required>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="submitLeaveBtn">Ajukan</button>
+                <button class="btn btn-secondary" id="cancelLeaveBtn">Batal</button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/dashboard.js"></script>
-    <script src="js/utils.js"></script>
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            const dashboard = new Dashboard();
+            dashboard.init();
+        });
+    </script>
 </body>
 </html>
